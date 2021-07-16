@@ -9,14 +9,15 @@
 #define Lexer_hpp
 
 #include <stdio.h>
+#include <fstream>
 #include "ScheatObjects.h"
 #include "ScheatToken.h"
-#include "Classes.h"
-#include <fstream>
+//#include "Classes.h"
 #include "ScheatStd.hpp"
 
+using namespace std;
 namespace scheat {
-class _Scheat;
+class Scheat;
 using namespace scheatSTD;
 
 namespace lexer {
@@ -33,10 +34,9 @@ enum LexerState {
 };
 
 class Lexer {
-    std::string buf;
+    string buf;
     LexerState state;
-    scheat::_Scheat *host = nullptr;
-    SourceLocation &location;
+    SourceLocation location;
     Token *tokens = nullptr;
     void input(int c, int next);
     void genTok();
@@ -45,32 +45,33 @@ class Lexer {
     bool skipFlag;
     bool isPossibleForPPPTok = false;
     bool AccessTokFlag = false;
+    Scheat *scheato;
 public:
-    
+
     // initializer
     // Scheat object for version management
-    Lexer(scheat::_Scheat*);
-    
+    Lexer(scheat::Scheat*);
+
     // lex(ifstream)
     // lex file and return token
-    void lex(std::ifstream &);
-    
-    void lex(std::string);
-    
-    static Token *lexString(_Scheat *, std::string);
-    
-    static Token *lexThis(_Scheat *);
-    void lex(_Scheat *sch) {
-        sch->tokens = lexThis(sch);
+    void lex();
+
+    void lex(string);
+
+    static Token *lexString(Scheat *, string);
+    __deprecated
+    static Token *lexThis(Scheat *);
+    void lex(Scheat *sch) {
+        lexThis(sch);
     };
     Token * getNextTok();
     Token * eatThisTok();
     // this function has fatal probrem
     // void addToken();
     void clear();
-    
+
     void clearTokens() ;
-    
+
     Token *getTokens();
 };
 

@@ -10,45 +10,54 @@
 #include <string>
 #pragma GCC visibility push(default)
 #include "ScheatStd.hpp"
-#include "Classes.h"
+#include "Lexer.hpp"
 namespace scheat{
 
 using namespace scheatSTD;
 
-class _Scheat;
+class ScheatLogManager;
 using namespace std;
+class Scheat;
 class ScheatDelegate {
 public:
-    
-    virtual void fatalError(_Scheat *_scheat,SourceLocation location, std::string filePath, std::string message, ...);
-    
-    virtual void warning(_Scheat *_scheat, SourceLocation location, std::string filePath, std::string message, ...);
-    
-    virtual void log(_Scheat *_scheat, SourceLocation location, std::string filePath, std::string message, ...);
-    
+
+    virtual void fatalError(Scheat *scheat,SourceLocation location, std::string filePath, std::string message, ...);
+
+    virtual void warning(Scheat *scheat, SourceLocation location, std::string filePath, std::string message, ...);
+
+    virtual void log(Scheat *scheat, SourceLocation location, std::string filePath, std::string message, ...);
+
     virtual std::string target_triple();
-    
+
     virtual std::string datalayout();
-    
+
 };
 
-class _Scheat;
+class ScheatLogManager;
+
+enum class OutputFileTypes{
+    objectFile,
+    staticLibrary,
+    sharedLibrary
+};
 
 class Scheat {
     bool debug;
     bool deepDebug;
-    _Scheat *schobj = nullptr;
+    ScheatLogManager *manager = nullptr;
     std::string productName;
+    bool hasError = false;
 public:
+    string projectName;
     /// returns true if this fails to compile.
     /// this is regarded as a flag.
     bool hasProbrem() const;
-    bool isMain = false;
-    std::string sourceFile = "";
+    OutputFileTypes outputFileType = OutputFileTypes::staticLibrary;
     std::string targettingFile;
     std::string outputFilePath;
     std::string target;
     std::string datalayout;
+    std::vector<string> targetFiles;
     vector<std::string> header_search_path;
     vector<std::string> library_search_path;
     vector<string> linkPaths = {};
@@ -62,9 +71,12 @@ public:
     void setProductName(std::string);
     void ready();
     void addMore();
-    Scheat();
-    friend class _Scheat;
-};;
+    ScheatLogManager* logger(){ return manager; };
+    Scheat(string projectName) : projectName(projectName){};
+    friend class ScheatLogManager;
+};
+
+
 
 class IRBuilder;
 

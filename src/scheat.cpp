@@ -10,25 +10,17 @@
 #include <cstdarg>
 #include "scheat.h"
 #include "ScheatObjects.h"
-#include "ScheatContextStructures.h"
-#include "scheatPriv.hpp"
-#include "ScheatStatics.h"
-#include "ScheatContext.h"
-#include "Lexer.hpp"
-#include "Classes.h"
-#include "ScheatAST.hpp"
-#include "ScheatEncoder.h"
 #include "Utilities.h"
 
 using namespace scheat;
 
 
 bool Scheat::hasProbrem() const{
-    return schobj->hasProbrem();
+    return hasError;
 }
 
-void _Scheat::FatalError(SourceLocation location, const char *fn, unsigned int line, const char *fmt, ...){
-    hasError = true;
+void ScheatLogManager::FatalError(SourceLocation location, const char *fn, unsigned int line, const char *fmt, ...){
+    scheato->hasError = true;
     FILE *fp = stdout;
     if (loggingFile != "") {
         fp = fopen(loggingFile.c_str(), "a");
@@ -37,7 +29,7 @@ void _Scheat::FatalError(SourceLocation location, const char *fn, unsigned int l
         }
     }
     if (delegate != nullptr) {
-        delegate->fatalError(this,location, targettingFile, fmt);
+        delegate->fatalError(this,location, scheato->targettingFile, fmt);
         return;
     }
     if (deepDebug) {
@@ -54,7 +46,7 @@ void _Scheat::FatalError(SourceLocation location, const char *fn, unsigned int l
                location.column);
     }
     va_list arg;
-    
+
     va_start(arg, fmt);
     ::vfprintf(fp, fmt, arg);
     va_end(arg);
@@ -63,62 +55,62 @@ void _Scheat::FatalError(SourceLocation location, const char *fn, unsigned int l
     exit(9);
 }
 
-void _Scheat::Warning(SourceLocation location, const char *fn, unsigned int line, const char *format, ...){
+void ScheatLogManager::Warning(SourceLocation location, const char *fn, unsigned int line, const char *format, ...){
     if (delegate != nullptr) {
-        delegate->warning(this, location, sourceFile, format);
+        delegate->warning(this, location, scheato->targettingFile, format);
         return;
     }
     if (deepDebug) {
         printf("\033[1;43mWarning:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
                fn,
                line,
-               targettingFile.c_str(),
+               scheato->targettingFile.c_str(),
                location.line,
                location.column);
     }else{
         printf("\033[1;43mWarning:\033[m\n in file: %s\n line%u.%u : ",
-               targettingFile.c_str(),
+               scheato->targettingFile.c_str(),
                location.line,
                location.column);
     }
     va_list arg;
-    
+
     va_start(arg, format);
     ::vprintf(format, arg);
     va_end(arg);
     printf("\n");
 }
 
-void _Scheat::Log(SourceLocation location, const char *fn, unsigned int line, const char *fmt, ...){
+void ScheatLogManager::Log(SourceLocation location, const char *fn, unsigned int line, const char *fmt, ...){
     if (!debug) {
         return;
     }
     if (delegate != nullptr) {
-        delegate->log(this, location, targettingFile, fmt);
+        delegate->log(this->scheato, location, scheato->targettingFile, fmt);
         return;
     }
     if (deepDebug) {
         printf("\033[1mLog:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
                fn,
                line,
-               targettingFile.c_str(),
+               scheato->targettingFile.c_str(),
                location.line,
                location.column);
     }else{
         printf("\033[1mLog:\033[m\n in file: %s\n line%u.%u : ",
-               targettingFile.c_str(),
+               scheato->targettingFile.c_str(),
                location.line,
                location.column);
     }
     va_list arg;
-    
+
     va_start(arg, fmt);
     ::vprintf(fmt, arg);
     va_end(arg);
     printf("\n");
 }
 
-_Scheat::_Scheat(){
+ScheatLogManager::ScheatLogManager(){
     debug = false;
     deepDebug = false;
     hasError = false;
@@ -127,45 +119,28 @@ _Scheat::_Scheat(){
     delegate = nullptr;
 }
 
-_Scheat::_Scheat(Scheat *sch){
+ScheatLogManager::ScheatLogManager(Scheat *sch){
     debug = sch->debug;
     deepDebug = sch->deepDebug;
-    sch->schobj = this;
-    sourceFile = sch->sourceFile;
-    targettingFile = sch->targettingFile;
-    outputFilePath = sch->outputFilePath;
-    target = sch->target;
-    datalayout = sch->datalayout;
-    header_search_path = sch->header_search_path;
-    library_names = sch->library_search_path;
     delegate = sch->delegate;
-    productName = sch->productName;
     onlyAssembles = sch->onlyAssemble;
-    delLL = sch->deletesIRFiles;
-    logTopString = sch->logTopString;
     tokens = nullptr;
 }
 
 void Scheat::ready(){
-    scheato = new _Scheat(this);
-    ScheatContext::Init(scheato);
+    manager = new ScheatLogManager(this);
+
     if (isMain) {
-        ScheatContext::AddMain();
     }
 }
 
 void Scheat::addMore(){
-    if (scheato == nullptr) {
+    if (manager == nullptr) {
         ready();
         return;
     }
-    auto newone = new _Scheat(this);
-    newone->tokens = scheato->tokens;
-    scheato = newone;
-    ScheatContext::Init(scheato);
-    if (isMain) {
-        ScheatContext::AddMain();
-    }
+    auto newone = new ScheatLogManager(this);
+    manager = newone;
 }
 
 Scheat::Scheat(){
@@ -173,36 +148,36 @@ Scheat::Scheat(){
     deepDebug = false;
     targettingFile = "";
     delegate = nullptr;
-    if (scheato != nullptr) {
-        scheato->FatalError(SourceLocation(), __FILE_NAME__, __LINE__, "Another Scheat is initialized. One thread can have only one Scheat.");
+    if (manager != nullptr) {
+        manager->FatalError(SourceLocation(), __FILE_NAME__, __LINE__, "Another Scheat is initialized. One thread can have only one Scheat.");
         exit(0);
     }
-//    scheato = new _Scheat(this);
+//    scheato = new ScheatLogManager(this);
 //    ScheatContext::Init(scheato);
 }
 
-void _Scheat::DevLog(SourceLocation location, const char *fn, unsigned int line, const char *fmt, ...){
+void ScheatLogManager::DevLog(SourceLocation location, const char *fn, unsigned int line, const char *fmt, ...){
     if (deepDebug) {
         printf("\033[1mLog:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
                fn,
                line,
-               targettingFile.c_str(),
+               scheato->targettingFile.c_str(),
                location.line,
                location.column);
         va_list arg;
-        
+
         va_start(arg, fmt);
         ::vprintf(fmt, arg);
         va_end(arg);
         printf("\n");
-        
+
     }else{
         return;
     }
-    
+
 }
 
-void scheatPriv::HelloWorldPriv(const char * s) 
+void scheatPriv::HelloWorldPriv(const char * s)
 {
     std::cout << s << std::endl;
 };
@@ -233,22 +208,22 @@ void Scheat::complementSettings(){
         printf("to complete settings, at least sourceFile is needed.");
         return;
     }
-    
+
 //    if (outputFilePath == "-") {
 //        outputFilePath = getFileName(sourceFile);
 //        delLL = true;
 //    }else{
 //        delLL = false;
 //    }
-    
+
     if (outputFilePath == "") {
         outputFilePath = getFileName(sourceFile);
     }
-    
+
     if (productName == "") {
         productName = outputFilePath;
     }
-    
+
     if (sourceFile.find(".scheat") != string::npos) {
         isMain = true;
     }

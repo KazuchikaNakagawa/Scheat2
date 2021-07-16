@@ -8,14 +8,14 @@
 #include "ScheatToken.h"
 #include "Lexer.hpp"
 #include "ScheatObjects.h"
-#include "ScheatStatics.h"
+#include "scheat.h"
 
 using namespace scheat;
 using namespace scheat::lexer;
 
-std::string Token::encodeOperator(){
+std::string Token::encodeOperator(ScheatLogManager *manager){
     if (kind != TokenKind::val_operator) {
-        scheato->Warning(SourceLocation(), __FILE_NAME__, __LINE__, "token was tried to encoded though it was not an operator");
+        manager->Warning(SourceLocation(), __FILE_NAME__, __LINE__, "token was tried to encoded though it was not an operator");
         return "__NON_OPERATOR_ENCODED__";
     }
     std::string result = "";
@@ -86,42 +86,43 @@ Token *Token::first(){
     if (cpy == nullptr) {
         return nullptr;
     }
-    
+
     while (cpy->prev != nullptr) {
         cpy = cpy->prev;
     }
-    
+
     return cpy;
 }
 
-Lexer::Lexer(scheat::_Scheat *host) : location(host->location){
+Lexer::Lexer(scheat::Scheat *scheato){
     buf = "";
     skipFlag = false;
-    this->host = host;
+    this->scheato = scheato;
     tokens = nullptr;
     commentDepth = 0;
     state = initState;
-    if (host->tokens != nullptr) tokens = host->tokens->last()->prev;
-    else tokens = nullptr;
-    location = host->location;
+    scheato = scheato;
 }
 
-void Lexer::lex(std::ifstream &stream){
+void Lexer::lex(){
+    for (auto path : scheato->targetFiles){
+        scheato->targettingFile = path;
+    ifstream stream(path);
     if (!stream.is_open()) {
-        host->FatalError(SourceLocation(), __FILE_NAME__, __LINE__, "%s is not open",
-                         host->targettingFile.c_str());
+        scheato->logger()->FatalError(SourceLocation(), __FILE_NAME__, __LINE__, "%s is not open",
+                         scheato->targettingFile.c_str());
     }
     int c;
     while (c = stream.get(), c != EOF) {
         input(c, stream.get());
         stream.unget();
-        if (host->hasProbrem()) {
+        if (scheato->hasProbrem()) {
             break;
         }
     }
     genTok();
+    }
     addEOFToken();
-    host->location = location;
 }
 
 void Lexer::addEOFToken(){
@@ -187,7 +188,7 @@ Token *Token::add(Token *tokens, Token *token){
 #define tadd tokens = Token::add(tokens, tok)
 
 void Lexer::genTok(){
-    scheato->DevLog(SourceLocation(), __FILE_NAME__, __LINE__, "token generated with %s\n", buf.c_str());
+    scheato->logger()->DevLog(SourceLocation(), __FILE_NAME__, __LINE__, "token generated with %s\n", buf.c_str());
     if (buf.empty()) {
         state = initState;
         clear();
@@ -276,189 +277,189 @@ void Lexer::genTok(){
         clear();
         return;
     }
-    
+
     if (buf == "break") {
         tok->kind = TokenKind::tok_break;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "loaded" || buf == "at") {
         tok->kind = TokenKind::tok_loaded;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "is" || buf == "are" || buf == "shows" || buf == "show" || buf == "become" || buf == "becomes") {
         tok->kind = TokenKind::tok_is;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "that" || buf == "the" || buf == "those") {
         tok->kind = TokenKind::tok_the;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "or") {
         tok->kind = TokenKind::tok_or;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "do" || buf == "does") {
         tok->kind = TokenKind::tok_do;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "from") {
         tok->kind = TokenKind::tok_from;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "remember") {
         tok->kind = TokenKind::tok_external;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "return") {
         tok->kind = TokenKind::tok_return;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "global") {
         tok->kind = TokenKind::tok_global;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "local") {
         tok->kind = TokenKind::tok_local;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "class") {
         tok->kind = TokenKind::tok_class;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "its") {
         tok->kind = TokenKind::tok_its;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "print") {
         tok->kind = TokenKind::embbed_func_print;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "assemble") {
         tok->kind = TokenKind::embbed_func_assemble;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "if") {
         tok->kind = TokenKind::tok_if;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "import") {
         tok->kind = TokenKind::tok_import;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "export") {
         tok->kind = TokenKind::tok_export;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "to") {
         tok->kind = TokenKind::tok_to;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "of") {
         tok->kind = TokenKind::tok_of;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "done") {
         tok->kind = TokenKind::tok_done;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "null") {
         tok->kind = TokenKind::val_null;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "for") {
         tok->kind = TokenKind::tok_for;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "times") {
         tok->kind = TokenKind::tok_times;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "with") {
         tok->kind = TokenKind::tok_with;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "while") {
         tok->kind = TokenKind::tok_while;
         tadd;
         clear();
         return;
     }
-    
+
     if (buf == "true") {
         tok->kind = TokenKind::val_bool;
         tok->value.boolValue = true;
@@ -466,7 +467,7 @@ void Lexer::genTok(){
         clear();
         return;
     }
-    
+
     if (buf == "false") {
         tok->kind = TokenKind::val_bool;
         tok->value.boolValue = false;
@@ -474,7 +475,7 @@ void Lexer::genTok(){
         clear();
         return;
     }
-    
+
     if (state == identifierState) {
         tok->value.strValue = buf;
         tok->kind = TokenKind::val_identifier;
@@ -485,9 +486,9 @@ void Lexer::genTok(){
 
 #undef tadd
 
-void Token::out(){
+void Token::out(ScheatLogManager *manager){
     printf("line: %d, column: %d    ", location.line, location.column);
-    
+
     switch (kind) {
         case TokenKind::tok_EOF:
             printf("EOF token\n");
@@ -509,7 +510,7 @@ void Token::out(){
             break;
         case TokenKind::val_operator:
             printf("operator token ->%s ", value.strValue.c_str());
-            printf("encoded ->%s\n", this->encodeOperator().c_str());
+            printf("encoded ->%s\n", this->encodeOperator(manager).c_str());
             break;
         case TokenKind::val_null:
             printf("null token\n");
@@ -541,7 +542,7 @@ void Token::out(){
         case TokenKind::tok_for:
             printf("for token\n");
             break;
-            
+
         case TokenKind::tok_from:
             printf("from token\n");
             break;
@@ -624,9 +625,9 @@ void Token::out(){
             printf("assemble token\n");
             break;
     }
-    
+
     //printf("unknown token\n");
-    
+
 }
 
 void Lexer::clear(){
@@ -637,27 +638,27 @@ void Lexer::clear(){
 }
 
 void Lexer::input(int c, int next){
-    if (host->hasProbrem()) {
+    if (scheato->hasProbrem()) {
         return;
     }
-    host->DevLog(location, __FILE_NAME__,__LINE__, "%c was input, %s : now buffer", c, buf.c_str());
+    scheato->logger()->DevLog(location, __FILE_NAME__,__LINE__, "%c was input, %s : now buffer", c, buf.c_str());
     if (c == '\0' || c == EOF) {
         genTok();
         return;
     }
-    
+
     location.column++;
-    
+
     if (c == '\n') {
 //        location.line++;
 //        location.column = 0;
     }
-    
+
     if (skipFlag) {
         skipFlag = !skipFlag;
         return;
     }
-    
+
     if (commentDepth > 0 && c == '*' && next == '#' && state != stringState) {
         commentDepth--;
         skipFlag = true;
@@ -666,18 +667,18 @@ void Lexer::input(int c, int next){
         }
         return;
     }
-    
+
     if (commentDepth > 0) {
         return;
     }
-    
+
     if (true
         && state == commentState
         && c != '\n') {
         location.line++;
         location.column = 0;
         return;
-        
+
     }else if (state == commentState && c == '\n'){
         clear();
         location.line++;
@@ -689,20 +690,20 @@ void Lexer::input(int c, int next){
         location.column = 0;
         return;
     }
-    
+
     if (c == '"' && state == stringState) {
         buf.push_back(c);
         genTok();
         return;
     }
-    
+
     if (c == '"') {
         genTok();
         buf.push_back(c);
         state = stringState;
         return;
     }
-    
+
     if (state == stringState && c == '\\') {
         if (next == 'n') {
             buf.push_back('\\');
@@ -734,33 +735,33 @@ void Lexer::input(int c, int next){
         skipFlag = true;
         return;
     }
-    
+
     if (state == stringState) {
         buf.push_back(c);
         return;
     }
-    
+
     if (c == ' ') {
         genTok();
         return;
     }
-    
+
     if (c == '\t') {
         genTok();
         return;
     }
-    
+
     if (c == '#' && next == '*') {
         genTok();
         state = longCommentState;
         commentDepth++;
     }
-    
+
     if (c == '#') {
         state = commentState;
         return;
     }
-    
+
     if (isalpha(c) || c == '_') {
         if (state == operatorState) {
             genTok();
@@ -777,10 +778,10 @@ void Lexer::input(int c, int next){
             buf.push_back(c);
             return;
         }
-        host->FatalError(location, __FILE_NAME__,__LINE__, "illegal character %c was input.", c);
+        scheato->logger()->FatalError(location, __FILE_NAME__,__LINE__, "illegal character %c was input.", c);
         return;
     }
-    
+
     if (isdigit(c)) {
         if (state == operatorState) {
             genTok();
@@ -806,17 +807,17 @@ void Lexer::input(int c, int next){
             state = doubleState;
             return;
         }
-        host->FatalError(location, __FILE_NAME__,__LINE__, "illegal character %c was input.", location.line, location.column, c);
+        scheato->logger()->FatalError(location, __FILE_NAME__,__LINE__, "illegal character %c was input.", location.line, location.column, c);
         return;
     }
-    
+
     if (c == '.') {
         if (state == numberState && isdigit(next)) {
             state = doubleState;
             buf.push_back(c);
             return;
         }
-        
+
         if (next == '.' && isPossibleForPPPTok) {
             // .. <- .
             buf.push_back(c);
@@ -833,7 +834,7 @@ void Lexer::input(int c, int next){
         }
         else if (isPossibleForPPPTok && next != '.'){
             // .. token
-            host->FatalError(location, __FILE_NAME__, __LINE__, "invalid input '..' . Did you mean '...'?");
+            scheato->logger()->FatalError(location, __FILE_NAME__, __LINE__, "invalid input '..' . Did you mean '...'?");
         }
         if (isalpha(next)) {
             AccessTokFlag = true;
@@ -843,7 +844,7 @@ void Lexer::input(int c, int next){
         genTok();
         return;
     }
-    
+
     if (c == ',') {
         if (state == numberState && isdigit(next)) {
             return;
@@ -853,35 +854,35 @@ void Lexer::input(int c, int next){
         genTok();
         return;
     }
-    
+
     if (c == '(') {
         genTok();
         buf.push_back(c);
         genTok();
         return;
     }
-    
+
     if (c == ')') {
         genTok();
         buf.push_back(c);
         genTok();
         return;
     }
-    
+
     if (c == '{') {
         genTok();
         buf.push_back(c);
         genTok();
         return;
     }
-    
+
     if (c == '}') {
         genTok();
         buf.push_back(c);
         genTok();
         return;
     }
-    
+
     if (true
         && state == initState
         && c == '-'
@@ -890,7 +891,7 @@ void Lexer::input(int c, int next){
         buf.push_back(c);
         return;
     }
-    
+
     if (false
         || c == '+'
         || c == '-'
@@ -921,23 +922,23 @@ void Lexer::input(int c, int next){
         state = operatorState;
         return;
     }
-    
-    host->FatalError(location, __FILE_NAME__,__LINE__, "in %d.%d illegal character %c was input.", location.line, location.column, c);
+
+    scheato->logger()->FatalError(location, __FILE_NAME__,__LINE__, "in %d.%d illegal character %c was input.", location.line, location.column, c);
 }
 
-void Token::enumerate(){
+void Token::enumerate(ScheatLogManager *manager){
     Token *a = this->first();
     while (a != nullptr) {
-        a->out();
+        a->out(manager);
         a = a->next;
     }
 }
 
 void Lexer::lex(std::string str){
     int length = str.length();
-    host->targettingFile = "User_input";
+    scheato->targettingFile = "User_input";
     for (int i = 0; i < length; i++) {
-        if (host->hasProbrem()) {
+        if (scheato->hasProbrem()) {
             return;
         }
         input(str[i], str[i + 1]);
@@ -948,31 +949,7 @@ void Lexer::lex(std::string str){
     }
     genTok();
     addEOFToken();
-    host->location = location;
-    //printf("%d.%d\n", host->location.line, host->location.column);
-    host->tokens = (tokens->first());
-}
-
-std::string Function::codegen(IRStream &f){
-    f << "define " << return_type.ir_used << " @" << name << "(";
-    int i = 0;
-    for (auto arg = argTypes.begin(); arg != argTypes.end(); arg = std::next(arg)) {
-        f << (*arg).ir_used << " %" << std::to_string(i);
-        if (argTypes.size() != i+1) {
-            f << ", ";
-            
-        }else{
-            f << "){\n";
-            break;
-        }
-        i++;
-    }
-    
-    return getMangledName();
-}
-
-string Function::asValue(){
-    return lltype() + "* @" + mangledName;
+    //printf("%d.%d\n", scheato->location.line, scheato->location.column);
 }
 
 void Lexer::clearTokens(){
@@ -998,21 +975,19 @@ Token *Lexer::eatThisTok(){
     return tokens;
 }
 
-Token *Lexer::lexString(_Scheat *sch, std::string sstream){
+Token *Lexer::lexString(Scheat *sch,std::string sstream){
     Lexer lexer(sch);
     lexer.lex(sstream);
-    sch->tokens = lexer.tokens;
     return lexer.tokens;
 }
 
-Token *Lexer::lexThis(_Scheat *sch){
-    std::ifstream ifs(sch->sourceFile);
+Token *Lexer::lexThis(Scheat *sch){
+    std::ifstream ifs(sch->targetFiles[0]);
     if (!ifs.is_open()) {
-        sch->Warning(SourceLocation(), __FILE_NAME__, __LINE__, "file %s does not exists. ", sch->sourceFile.c_str());
+        sch->logger()->Warning(SourceLocation(), __FILE_NAME__, __LINE__, "file %s does not exists. ", sch->targetFiles[0].c_str());
         return nullptr;
     }
     Lexer lexer(sch);
-    lexer.lex(ifs);
-    sch->tokens = lexer.getTokens();
+    lexer.lex(sch);
     return lexer.getTokens();
 }
