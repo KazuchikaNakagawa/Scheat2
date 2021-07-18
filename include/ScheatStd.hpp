@@ -21,6 +21,7 @@ struct SourceLocation {
     static SourceLocation OUTOFFILE;
     SourceLocation(int l, int c) : line(l), column(c) {};
     SourceLocation() = default;
+    SourceLocation(const SourceLocation &l) : line(l.line), column(l.column){};
     string to_string() const;
     ~SourceLocation() = default;
 };

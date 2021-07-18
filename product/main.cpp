@@ -10,6 +10,7 @@
 #include <string>
 #include <fstream>
 #include <sys/stat.h>
+#include <filesystem>
 #include <unistd.h>
 #include "scheat.h"
 #include "CommandLineOptions.hpp"
@@ -19,80 +20,81 @@
 #define TEST(action) { action; }
 
 using namespace std;
+namespace fs = std::__fs::filesystem;
 using namespace scheat;
 using namespace commandLine;
 
 static void compileScheat(OptionStream &options, Option *source){
     //printf("compile: make .scheat file into object file.\n");
-    Scheat scheat;
-    scheat.sourceFile = string(source->value[0].data.svalue);
-    
-    if (scheat.sourceFile.find(".scheat") != string::npos) {
-        scheat.isMain = true;
-    }
-    
+
+    Scheat scheat("");
+    scheat.logInfo(true);
+    scheat.logAllInfo(true);
+    scheat.targetFiles.push_back(string(source->value[0].data.svalue));
     auto header = options.getOption("-L", type_array);
     if (!header) {
-        
+
     }else{
         for (auto s : header->value) {
             scheat.header_search_path.push_back(s.data.svalue);
         }
         //copy(scheat.header_search_path.begin(), scheat.header_search_path.end(), header->value);
     }
-    
+
     auto outputName = options.getOption("-o", type_string);
     if (!outputName) {
-        
+
     }else{
-        
+
         scheat.outputFilePath = outputName->value[0].data.svalue;
         scheat.setProductName(scheat.outputFilePath);
         //printf("output file is set: %s\n", scheat.outputFilePath.c_str());
     }
-    
+
     auto delOption = options.getOption("-ll", type_no_args);
     if (delOption) {
         scheat.deletesIRFiles = false;
     }
-    
+
     auto asmOption = options.getOption("-c", type_no_args);
     if (asmOption) {
         scheat.onlyAssemble = true;
     }
-    
+
     auto deepLogOption = options.getOption("-Log", type_no_args);
     if (deepLogOption) {
         scheat.logInfo(true);
         scheat.logAllInfo(true);
     }
-    
+
     auto LTSOption = options.getOption("-enableFastLog", type_no_args);
-    
+
     if (LTSOption) {
         scheat.logTopString = true;
     }
-    
+
     scheat.complementSettings();
-    
+
     scheat.ready();
-    ScheatLexer::lex();
+    Lexer lexer(&scheat);
+    lexer.lex();
     if (scheat.hasProbrem()) {
         return;
     }
+    lexer.getTokens()->enumerate(scheat.logger());
     //printf("lexing ended successfully.");
-    ScheatAnalyzer::parse();
+    //ScheatAnalyzer::parse();
     if (scheat.hasProbrem()) {
         return;
     }
     //printf("analyzing ended sucessfully.");
-    ScheatEncoder::encode();
+    //ScheatEncoder::encode();
     //printf("encoding ended.");
     return;
 }
 
 static void introduceSelf(){
-    std::cout << "Scheat 1.0" << std::endl;
+    std::cout << "Scheat 2.0" << std::endl;
     std::cout << "[based on LLVM 11/clang]" << std::endl;
 }
 
@@ -100,10 +102,9 @@ static void playScheat(){
 okok:
     introduceSelf();
     //std::cout << "> ";
-    Scheat scheat;
+    Scheat scheat("");
     //scheat.allowDeepDebug(true);
     scheat.logInfo(true);
-    scheat.isMain = true;
     while (true) {
         scheat.addMore();
         std::string code;
@@ -115,18 +116,23 @@ okok:
         if (cin.eof()) {
             break;
         }
-        ScheatLexer::testlex(code + "\n");
+        Lexer lexer(&scheat);
+        lexer.lex(code + "\n");
         if (scheat.hasProbrem()) {
             cout << "----Scheat has been reset----" << endl;
             goto okok;
         }
-        ScheatAnalyzer::parse();
+        //
         if (scheat.hasProbrem()) {
             cout << "----Scheat has been reset----" << endl;
             goto okok;
         }
-        ScheatEncoder::printout();
+        //
     }
+}
+
+static void scheatMake(OptionStream &options, Option *source){
+
 }
 
 static void scheat_showHelp(){
@@ -144,10 +150,10 @@ static void scheat_showHelp(){
 
 int main(int argc, const char *argv[]){
     // std::cout << argc << std::endl;
-    
+
     OptionStream options(argc, argv);
     options.parse();
-    
+
     auto source = options.getOption("-build", type_string);
     if (!source && options.isIncluded("-build")) {
         printf("Illegal command options. To show helps, try scheat -help\n");
@@ -159,7 +165,7 @@ int main(int argc, const char *argv[]){
         //OUT("no build options");
         //TEST(options.printBuffer());
     }
-    
+
     auto play = options.isIncluded("-play");
     if (!play && options.isIncluded("-play")) {
         printf("Illegal command options. To show helps, try scheat -help\n");
@@ -168,17 +174,17 @@ int main(int argc, const char *argv[]){
         playScheat();
         return 0;
     }
-    
+
     auto helpOption = options.getOption("-help", type_no_args);
     if (helpOption) {
         scheat_showHelp();
         return 0;
     }
-    
+
     introduceSelf();
-    
+
     cout << "if you don't know how to use, try -help" << endl;
-    
+
     return 0;
     /*
     if (argc == 1) {
@@ -189,7 +195,7 @@ int main(int argc, const char *argv[]){
     }else{
         printf("version 1.0.%d beta\n", SV_P);
     }
-    
+
     if (strcmp(argv[1], "-build") == 0) {
         Scheat scheat;
         std::string path;
@@ -209,7 +215,7 @@ int main(int argc, const char *argv[]){
         cin >> l;
         scheat.setProductName(l);
         scheat.complementSettings();
-        
+
         scheat.ready();
         ScheatLexer::lex();
         if (scheat.hasProbrem()) {
@@ -265,7 +271,7 @@ int main(int argc, const char *argv[]){
         "   option: -f enables you to lex file. Enter file path after -f option.";
         return 0;
     }
-    
+
     if (strcmp(argv[1], "-ready") == 0) {
         chdir("/usr/local/lib");
         int i = mkdir("Scheat", 0777);
@@ -276,10 +282,10 @@ int main(int argc, const char *argv[]){
         }
         return 0;
     }
-    
+
     if (strcmp(argv[1], "-lex") == 0) {
         scheat::Scheat sch = scheat::Scheat();
-        
+
         //scheat::ScheatLexer lexer(&sch);
         if (argc == 2){
             while (true){
@@ -288,14 +294,14 @@ int main(int argc, const char *argv[]){
                 std::cout << "> ";
                 std::getline(std::cin, kv);
                 if (kv == "\\q") {
-                    
+
                     break;
                 }
                 std::string buf = std::string(kv) + "\n";
                 sch.allowDeepDebug(true);
                 sch.ready();
                 scheat::ScheatLexer::testlex(buf);
-                
+
                 //lexer.getTokens()->enumerate();
             }
         }else if (argc == 3 && strcmp(argv[2], "-wdebug") == 0){
@@ -333,7 +339,7 @@ int main(int argc, const char *argv[]){
             scheat::ScheatEncoder::encode();
             return 0;
         }
-        
+
         return 0;
     }
     printf("Illegal command options. To show helps, try scheat -help\n");

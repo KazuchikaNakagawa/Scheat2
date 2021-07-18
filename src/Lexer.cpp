@@ -11,7 +11,6 @@
 #include "scheat.h"
 
 using namespace scheat;
-using namespace scheat::lexer;
 
 std::string Token::encodeOperator(ScheatLogManager *manager){
     if (kind != TokenKind::val_operator) {
@@ -101,7 +100,7 @@ Lexer::Lexer(scheat::Scheat *scheato){
     tokens = nullptr;
     commentDepth = 0;
     state = initState;
-    scheato = scheato;
+    this->scheato = scheato;
 }
 
 void Lexer::lex(){
@@ -112,6 +111,7 @@ void Lexer::lex(){
         scheato->logger()->FatalError(SourceLocation(), __FILE_NAME__, __LINE__, "%s is not open",
                          scheato->targettingFile.c_str());
     }
+    location = SourceLocation(1,0);
     int c;
     while (c = stream.get(), c != EOF) {
         input(c, stream.get());
@@ -188,7 +188,7 @@ Token *Token::add(Token *tokens, Token *token){
 #define tadd tokens = Token::add(tokens, tok)
 
 void Lexer::genTok(){
-    scheato->logger()->DevLog(SourceLocation(), __FILE_NAME__, __LINE__, "token generated with %s\n", buf.c_str());
+    scheato->logger()->DevLog(location, __FILE_NAME__, __LINE__, "token generated with %s\n", buf.c_str());
     if (buf.empty()) {
         state = initState;
         clear();

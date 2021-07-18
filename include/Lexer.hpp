@@ -20,7 +20,6 @@ namespace scheat {
 class Scheat;
 using namespace scheatSTD;
 
-namespace lexer {
 enum LexerState {
     commentState,
     longCommentState,
@@ -75,7 +74,6 @@ public:
     Token *getTokens();
 };
 
-}
 }
 
 #endif /* Lexer_hpp */

@@ -8,12 +8,14 @@
 #include <iostream>
 #include <stdio.h>
 #include <cstdarg>
+#include <fstream>
+#include <filesystem>
 #include "scheat.h"
 #include "ScheatObjects.h"
 #include "Utilities.h"
 
 using namespace scheat;
-
+using namespace std::__fs::filesystem;
 
 bool Scheat::hasProbrem() const{
     return hasError;
@@ -29,19 +31,19 @@ void ScheatLogManager::FatalError(SourceLocation location, const char *fn, unsig
         }
     }
     if (delegate != nullptr) {
-        delegate->fatalError(this,location, scheato->targettingFile, fmt);
+        delegate->fatalError(this->scheato,location, scheato->targettingFile, fmt);
         return;
     }
     if (deepDebug) {
         fprintf(fp, "\033[1;31mError:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
                fn,
                line,
-               targettingFile.c_str(),
+               scheato->targettingFile.c_str(),
                location.line,
                location.column);
     }else{
         fprintf(fp, "\033[1;31mError:\033[m\n in file: %s\n line%u.%u : ",
-               targettingFile.c_str(),
+               scheato->targettingFile.c_str(),
                location.line,
                location.column);
     }
@@ -56,19 +58,26 @@ void ScheatLogManager::FatalError(SourceLocation location, const char *fn, unsig
 }
 
 void ScheatLogManager::Warning(SourceLocation location, const char *fn, unsigned int line, const char *format, ...){
+    FILE *fp = stdout;
+    if (loggingFile != "") {
+        fp = fopen(loggingFile.c_str(), "a");
+        if (!fp) {
+            printf("logging file couldn't be opened.");
+        }
+    }
     if (delegate != nullptr) {
-        delegate->warning(this, location, scheato->targettingFile, format);
+        delegate->warning(this->scheato, location, scheato->targettingFile, format);
         return;
     }
     if (deepDebug) {
-        printf("\033[1;43mWarning:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
+        fprintf(fp,"\033[1;43mWarning:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
                fn,
                line,
                scheato->targettingFile.c_str(),
                location.line,
                location.column);
     }else{
-        printf("\033[1;43mWarning:\033[m\n in file: %s\n line%u.%u : ",
+        fprintf(fp,"\033[1;43mWarning:\033[m\n in file: %s\n line%u.%u : ",
                scheato->targettingFile.c_str(),
                location.line,
                location.column);
@@ -76,28 +85,35 @@ void ScheatLogManager::Warning(SourceLocation location, const char *fn, unsigned
     va_list arg;
 
     va_start(arg, format);
-    ::vprintf(format, arg);
+    ::vfprintf(fp,format, arg);
     va_end(arg);
-    printf("\n");
+    fprintf(fp, "\n");
 }
 
 void ScheatLogManager::Log(SourceLocation location, const char *fn, unsigned int line, const char *fmt, ...){
     if (!debug) {
         return;
     }
+    FILE *fp = stdout;
+    if (loggingFile != "") {
+        fp = fopen(loggingFile.c_str(), "a");
+        if (!fp) {
+            printf("logging file couldn't be opened.");
+        }
+    }
     if (delegate != nullptr) {
         delegate->log(this->scheato, location, scheato->targettingFile, fmt);
         return;
     }
     if (deepDebug) {
-        printf("\033[1mLog:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
+        fprintf(fp,"\033[1mLog:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
                fn,
                line,
                scheato->targettingFile.c_str(),
                location.line,
                location.column);
     }else{
-        printf("\033[1mLog:\033[m\n in file: %s\n line%u.%u : ",
+        fprintf(fp,"\033[1mLog:\033[m\n in file: %s\n line%u.%u : ",
                scheato->targettingFile.c_str(),
                location.line,
                location.column);
@@ -105,33 +121,22 @@ void ScheatLogManager::Log(SourceLocation location, const char *fn, unsigned int
     va_list arg;
 
     va_start(arg, fmt);
-    ::vprintf(fmt, arg);
+    ::vfprintf(fp,fmt, arg);
     va_end(arg);
-    printf("\n");
-}
-
-ScheatLogManager::ScheatLogManager(){
-    debug = false;
-    deepDebug = false;
-    hasError = false;
-    targettingFile = "";
-    location = SourceLocation();
-    delegate = nullptr;
+    fprintf(fp,"\n");
 }
 
 ScheatLogManager::ScheatLogManager(Scheat *sch){
     debug = sch->debug;
     deepDebug = sch->deepDebug;
     delegate = sch->delegate;
-    onlyAssembles = sch->onlyAssemble;
-    tokens = nullptr;
+    if (sch->projectName == ""){return;}
+    ofstream ofs(sch->projectName + ".log");
+    scheato = sch;
 }
 
 void Scheat::ready(){
     manager = new ScheatLogManager(this);
-
-    if (isMain) {
-    }
 }
 
 void Scheat::addMore(){
@@ -143,15 +148,11 @@ void Scheat::addMore(){
     manager = newone;
 }
 
-Scheat::Scheat(){
+Scheat::Scheat(string projectName): projectName(projectName){
     debug = false;
     deepDebug = false;
-    targettingFile = "";
+    this->targettingFile = "";
     delegate = nullptr;
-    if (manager != nullptr) {
-        manager->FatalError(SourceLocation(), __FILE_NAME__, __LINE__, "Another Scheat is initialized. One thread can have only one Scheat.");
-        exit(0);
-    }
 //    scheato = new ScheatLogManager(this);
 //    ScheatContext::Init(scheato);
 }
@@ -177,85 +178,41 @@ void ScheatLogManager::DevLog(SourceLocation location, const char *fn, unsigned 
 
 }
 
-void scheatPriv::HelloWorldPriv(const char * s)
-{
-    std::cout << s << std::endl;
-};
-
 void Scheat::setProductName(string nm){
-    productName = nm;
-    //schobj->productName = nm;
-}
-
-void ScheatLexer::lex(){
-    lexer::Lexer lxr(scheato);
-    lxr.lex(scheato);
-    if (!scheato->tokens) {
-        scheato->FatalError(SourceLocation(), __FILE_NAME__, __LINE__,
-                            "Failed to lex and unable to continue.");
-        exit(0);
+    if (nm == ""){ return; }
+    outputFilePath = nm;
+    auto fpath = path(nm);
+    if (!fpath.has_extension() || fpath.extension() == ".o" || fpath.extension() == ".exe"){
+        outputFileType = OutputFileTypes::objectFile;
+    }else if (fpath.extension() == ".a"){
+        outputFileType = OutputFileTypes::staticLibrary;
+    }else{
+        manager->FatalError(SourceLocation(),__FILE_NAME__,__LINE__, "result file is not suitable. choose file extension from .o, .a, .exe");
     }
 }
 
-void ScheatLexer::testlex(std::string buf){
-    lexer::Lexer lxr(scheato);
-    lxr.lex(buf);
-    lxr.getTokens()->enumerate();
-}
-
 void Scheat::complementSettings(){
-    if (sourceFile == "") {
+    if (targetFiles.empty()) {
         printf("to complete settings, at least sourceFile is needed.");
         return;
     }
 
-//    if (outputFilePath == "-") {
-//        outputFilePath = getFileName(sourceFile);
-//        delLL = true;
-//    }else{
-//        delLL = false;
-//    }
-
     if (outputFilePath == "") {
-        outputFilePath = getFileName(sourceFile);
+        outputFilePath = getFileName(targetFiles[0]);
     }
 
-    if (productName == "") {
-        productName = outputFilePath;
+    if (projectName == "") {
+        projectName = outputFilePath;
     }
 
-    if (sourceFile.find(".scheat") != string::npos) {
-        isMain = true;
-    }
 }
 
 void Scheat::logInfo(bool o){
     debug = o;
-    if (schobj != nullptr) schobj->logInfo(o);
+    if (manager != nullptr) manager->logInfo(o);
 }
 
 void Scheat::logAllInfo(bool b){
     deepDebug = b;
-    if (schobj != nullptr) schobj->logAllInfo(b);
+    if (manager != nullptr) manager->logAllInfo(b);
 };
-
-void ScheatAnalyzer::parse(){
-    if (scheato->deepDebug) {
-        scheato->tokens->enumerate();
-    }
-    parser2::parse(scheato, scheato->tokens);
-}
-
-void ScheatEncoder::encode(){
-    ofstream fp(scheato->outputFilePath + ".ll");
-    if (!fp.is_open()) {
-        scheato->FatalError(SourceLocation(), __FILE_NAME__, __LINE__, "%s could not  be opened.", scheato->outputFilePath.c_str());
-        return;
-    }
-    ScheatContext::exportTo(fp);
-    encoder::LLSCEncoder::encode(scheato->outputFilePath);
-}
-
-void ScheatEncoder::printout(){
-    ScheatContext::printout();
-}
