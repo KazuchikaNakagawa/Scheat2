@@ -981,19 +981,19 @@ Token *Lexer::eatThisTok(){
     return tokens;
 }
 
-Token *Lexer::lexString(Scheat *sch,std::string sstream){
-    Lexer lexer(sch);
-    lexer.lex(sstream);
-    return lexer.tokens;
-}
+// Token *Lexer::lexString(Scheat *sch,std::string sstream){
+//     Lexer lexer(sch);
+//     lexer.lex(sstream);
+//     return lexer.tokens;
+// }
 
-Token *Lexer::lexThis(Scheat *sch){
-    std::ifstream ifs(sch->targetFiles[0]);
-    if (!ifs.is_open()) {
-        sch->logger()->Warning(SourceLocation(), __FILE_NAME__, __LINE__, "file %s does not exists. ", sch->targetFiles[0].c_str());
-        return nullptr;
-    }
-    Lexer lexer(sch);
-    lexer.lex(sch);
-    return lexer.getTokens();
-}
+// Token *Lexer::lexThis(Scheat *sch){
+//     std::ifstream ifs(sch->targetFiles[0]);
+//     if (!ifs.is_open()) {
+//         sch->logger()->Warning(SourceLocation(), __FILE_NAME__, __LINE__, "file %s does not exists. ", sch->targetFiles[0].c_str());
+//         return nullptr;
+//     }
+//     Lexer lexer(sch);
+//     lexer.lex(sch);
+//     return lexer.getTokens();
+// }

@@ -57,12 +57,12 @@ public:
 
     void lex(string);
 
-    static Token *lexString(Scheat *, string);
-    __deprecated
-    static Token *lexThis(Scheat *);
-    void lex(Scheat *sch) {
-        lexThis(sch);
-    };
+    //static Token *lexString(Scheat *, string);
+    //__deprecated
+    //static Token *lexThis(Scheat *);
+    //void lex(Scheat *sch) {
+        //lexThis(sch);
+    //};
     Token * getNextTok();
     Token * eatThisTok();
     // this function has fatal probrem

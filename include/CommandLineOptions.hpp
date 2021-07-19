@@ -32,7 +32,7 @@ union Data {
     char* svalue;
     bool bvalue;
     double dvalue;
-    
+
     Data(){};
     ~Data() {};
 //    Data(const Data&) {};
@@ -57,10 +57,10 @@ struct Value {
                 data.dvalue = d.dvalue;
                 break;
             case type_array:
-                
+
                 break;
             case type_no_args:
-                
+
                 break;
         }
     }
@@ -74,14 +74,14 @@ struct OptionKey {
     string name;
     bool isOptional = false;
     Type type = type_no_args;
-    OptionKey(string n, Type t, bool o) : name(n), type(t), isOptional(o){}
+    OptionKey(string n, Type t, bool o) : name(n), isOptional(o), type(t){};
     OptionKey(){};
 };
 
 extern OptionKey singleArgumentOption(string name, Type type, bool isOptional = false);
 
 struct OptionArgument {
-    
+
 };
 
 struct Option : public OptionArgument {
@@ -89,10 +89,10 @@ struct Option : public OptionArgument {
     vector<Value> value;
     Option(string n, vector<Value> v) : name(n){
         value = v;
-        
+
     }
     ~Option(){
-        
+
     }
 };
 
@@ -138,7 +138,7 @@ public:
                 break;
         }
     };
-    
+
     Token(Token &&t){
         this->kind = t.kind;
         switch (t.kind) {
@@ -169,7 +169,7 @@ public:
 };
 
 class OptionStream {
-    
+
     string buffer;
     vector<OptionKey> opts = {};
     vector<Token> tokens = {};

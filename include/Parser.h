@@ -22,9 +22,15 @@
 #include <llvm/LinkAllIR.h>
 #include <iostream>
 #include <vector>
+#include <string>
+#include <map>
 
 using namespace std;
 using namespace llvm;
+
+namespace nodes {
+    class Node;
+}
 
 namespace scheat{
 
@@ -32,12 +38,16 @@ class Lexer;
 class Scheat;
 
 class Parser {
+protected:
+    map<string, Type*> structures;
 public:
+    map<string, GlobalVariable *> strings;
     Scheat *scheato = nullptr;
     LLVMContext context;
     unique_ptr<Module> module;
     llvm::IRBuilder<> builder;
     Parser(Lexer *);
+    friend class nodes::Node;
 };
 
 }

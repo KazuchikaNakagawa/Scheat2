@@ -6,6 +6,8 @@ add_library(
     Lexer.cpp
     Utilities.cpp
     Node.cpp
+    Parser.cpp
+    StringTerm.cpp
     scheat.cpp
 )
 

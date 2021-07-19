@@ -20,13 +20,17 @@
 #include <llvm/LinkAllIR.h>
 #include "../ScheatStd.h"
 #include "ScheatObjects.h"
+#include <map>
+#include <string>
 
 using namespace scheat;
 using namespace llvm;
 using namespace scheatSTD;
+using namespace std;
 namespace nodes{
 
 class Node {
+protected:
     Scheat *scheato = nullptr;
     Parser &parser;
     SourceLocation location;
@@ -35,6 +39,9 @@ public:
     Node(Parser &, SourceLocation);
     virtual Value *codegen(){ return nullptr; };
     virtual ~Node(){};
+    map<string, Type *>& getStructures(){
+        return parser.structures;
+    };
 };
 
 };

@@ -131,7 +131,7 @@ okok:
     }
 }
 
-static void scheatMake(OptionStream &options, Option *source){
+static void scheatMake(const char *dirPath){
 
 }
 
