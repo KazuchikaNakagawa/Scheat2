@@ -8,7 +8,7 @@
 #ifndef ScheatToken_h
 #define ScheatToken_h
 #include <string>
-#include "ScheatStd.hpp"
+#include "ScheatStd.h"
 
 namespace scheat {
 

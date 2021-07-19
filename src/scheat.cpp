@@ -22,7 +22,7 @@ bool Scheat::hasProbrem() const{
 }
 
 void ScheatLogManager::FatalError(SourceLocation location, const char *fn, unsigned int line, const char *fmt, ...){
-    scheato->hasError = true;
+    this->scheato->hasError = true;
     FILE *fp = stdout;
     if (loggingFile != "") {
         fp = fopen(loggingFile.c_str(), "a");
@@ -35,17 +35,15 @@ void ScheatLogManager::FatalError(SourceLocation location, const char *fn, unsig
         return;
     }
     if (deepDebug) {
-        fprintf(fp, "\033[1;31mError:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
+        fprintf(fp, "\033[1;31mError:\033[m(from %s, line%u)\n in file: %s\n %s : ",
                fn,
                line,
                scheato->targettingFile.c_str(),
-               location.line,
-               location.column);
+               location.to_string().c_str());
     }else{
-        fprintf(fp, "\033[1;31mError:\033[m\n in file: %s\n line%u.%u : ",
+        fprintf(fp, "\033[1;31mError:\033[m\n in file: %s\n %s : ",
                scheato->targettingFile.c_str(),
-               location.line,
-               location.column);
+               location.to_string().c_str());
     }
     va_list arg;
 
@@ -70,17 +68,15 @@ void ScheatLogManager::Warning(SourceLocation location, const char *fn, unsigned
         return;
     }
     if (deepDebug) {
-        fprintf(fp,"\033[1;43mWarning:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
+        fprintf(fp,"\033[1;43mWarning:\033[m(from %s, line%u)\n in file: %s\n %s : ",
                fn,
                line,
                scheato->targettingFile.c_str(),
-               location.line,
-               location.column);
+               location.to_string().c_str());
     }else{
-        fprintf(fp,"\033[1;43mWarning:\033[m\n in file: %s\n line%u.%u : ",
+        fprintf(fp,"\033[1;43mWarning:\033[m\n in file: %s\n %s : ",
                scheato->targettingFile.c_str(),
-               location.line,
-               location.column);
+               location.to_string().c_str());
     }
     va_list arg;
 
@@ -106,17 +102,15 @@ void ScheatLogManager::Log(SourceLocation location, const char *fn, unsigned int
         return;
     }
     if (deepDebug) {
-        fprintf(fp,"\033[1mLog:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
+        fprintf(fp,"\033[1mLog:\033[m(from %s, line%u)\n in file: %s\n %s : ",
                fn,
                line,
                scheato->targettingFile.c_str(),
-               location.line,
-               location.column);
+               location.to_string().c_str());
     }else{
-        fprintf(fp,"\033[1mLog:\033[m\n in file: %s\n line%u.%u : ",
+        fprintf(fp,"\033[1mLog:\033[m\n in file: %s\n %s : ",
                scheato->targettingFile.c_str(),
-               location.line,
-               location.column);
+               location.to_string().c_str());
     }
     va_list arg;
 
@@ -130,9 +124,9 @@ ScheatLogManager::ScheatLogManager(Scheat *sch){
     debug = sch->debug;
     deepDebug = sch->deepDebug;
     delegate = sch->delegate;
+    scheato = sch;
     if (sch->projectName == ""){return;}
     ofstream ofs(sch->projectName + ".log");
-    scheato = sch;
 }
 
 void Scheat::ready(){
@@ -159,12 +153,11 @@ Scheat::Scheat(string projectName): projectName(projectName){
 
 void ScheatLogManager::DevLog(SourceLocation location, const char *fn, unsigned int line, const char *fmt, ...){
     if (deepDebug) {
-        printf("\033[1mLog:\033[m(from %s, line%u)\n in file: %s\n line%u.%u : ",
+        printf("\033[1mLog:\033[m(from %s, line%u)\n in file: %s\n %s : ",
                fn,
                line,
                scheato->targettingFile.c_str(),
-               location.line,
-               location.column);
+               location.to_string().c_str());
         va_list arg;
 
         va_start(arg, fmt);

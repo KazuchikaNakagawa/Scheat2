@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include "Utilities.h"
 
-#include "ScheatStd.hpp"
+#include "ScheatStd.h"
 
 typedef scheatSTD::SourceLocation SourceLocation;
 
@@ -19,13 +19,12 @@ string getFileName(string path){
             kbuf = "";
             continue;
         }
-        
+
         if (c == '.') {
             return kbuf;
         }
-        
+
         kbuf.push_back(c);
     }
     return "";
 }
-

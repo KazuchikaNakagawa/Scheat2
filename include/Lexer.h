@@ -13,7 +13,7 @@
 #include "ScheatObjects.h"
 #include "ScheatToken.h"
 //#include "Classes.h"
-#include "ScheatStd.hpp"
+#include "ScheatStd.h"
 
 using namespace std;
 namespace scheat {

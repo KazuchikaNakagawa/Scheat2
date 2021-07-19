@@ -13,7 +13,7 @@
 #include <iostream>
 #include "ScheatToken.h"
 #include "scheat.h"
-#include "ScheatStd.hpp"
+#include "ScheatStd.h"
 
 #define SV_P 18
 namespace scheat {
@@ -104,7 +104,7 @@ class ScheatLogManager {
     bool debug;
     bool deepDebug;
     bool hasError;
-    Scheat *scheato;
+    Scheat *scheato = nullptr;
     string loggingFile;
 public:
     ScheatDelegate *delegate = nullptr;

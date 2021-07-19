@@ -6,7 +6,7 @@
 //
 
 #include "ScheatToken.h"
-#include "Lexer.hpp"
+#include "Lexer.h"
 #include "ScheatObjects.h"
 #include "scheat.h"
 
@@ -94,13 +94,19 @@ Token *Token::first(){
 }
 
 Lexer::Lexer(scheat::Scheat *scheato){
+    if (!scheato) {
+
+        exit(9);
+    }
+    if (scheato->logger() == nullptr) {
+        scheato->ready();
+    }
     buf = "";
     skipFlag = false;
     this->scheato = scheato;
     tokens = nullptr;
     commentDepth = 0;
     state = initState;
-    this->scheato = scheato;
 }
 
 void Lexer::lex(){

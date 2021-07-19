@@ -9,9 +9,10 @@
 #define scheat_
 #include <string>
 #pragma GCC visibility push(default)
-#include "ScheatStd.hpp"
-#include "Lexer.hpp"
+#include "ScheatStd.h"
+#include "Lexer.h"
 #include "ScheatObjects.h"
+#include "Parser.h"
 namespace scheat{
 
 
