@@ -22,6 +22,7 @@
 #include "ScheatObjects.h"
 #include <map>
 #include <string>
+#include <vector>
 
 using namespace scheat;
 using namespace llvm;
@@ -30,12 +31,12 @@ using namespace std;
 namespace nodes{
 
 class Node {
-protected:
+public:
     Scheat *scheato = nullptr;
     Parser &parser;
     SourceLocation location;
     Type *type;
-public:
+
     Node(Parser &, SourceLocation);
     virtual Value *codegen(){ return nullptr; };
     virtual ~Node(){};

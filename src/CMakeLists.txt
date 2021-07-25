@@ -2,12 +2,16 @@ add_library(
     scheatAPI
     STATIC
     ScheatStd.cpp
-    Tokens.cpp
     Lexer.cpp
     Utilities.cpp
     Node.cpp
     Parser.cpp
     StringTerm.cpp
+    Generator.cpp
+    InfixOperatorExpr.cpp
+    PrimaryInfixOperatorExpr.cpp
+    InfixOperatorTerm.cpp
+    Context.cpp
     scheat.cpp
 )
 

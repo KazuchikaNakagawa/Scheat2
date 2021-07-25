@@ -10,9 +10,9 @@ class BoolTerm : public Term {
 public:
     virtual Value *codegen() override{
         if (value) {
-            return parser.builder.getTrue(parser.context);
+            return parser.builder.getTrue();
         }else{
-            return parser.builder.getFalse(parser.context);
+            return parser.builder.getFalse();
         }
         return nullptr;
     };

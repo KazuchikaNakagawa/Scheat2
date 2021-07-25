@@ -38,10 +38,12 @@ class Lexer;
 class Scheat;
 
 class Parser {
-protected:
+public:
     map<string, Type*> structures;
 public:
     map<string, GlobalVariable *> strings;
+    // this is temporary and used in only generating
+    map<string, Value *> namedValues;
     Scheat *scheato = nullptr;
     LLVMContext context;
     unique_ptr<Module> module;
