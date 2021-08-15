@@ -2,33 +2,36 @@
 #define PPoOExpr
 
 #include "PrimaryExpr.h"
+#include "../Context.h"
 
 namespace nodes {
 class PrimaryPostfixOperatorExpr : public PrimaryExpr{
-    unique_ptr<PrimaryExpr> lhs;
-    string func_name;
+    shared_ptr<PrimaryExpr> lhs;
+    OperatorInfo *info;
 public:
-    Value *codegen() override{
-        auto callee = parser.module->getFunction(func_name);
-        if (!callee){
-            scheato->logger()->FatalError(location, __FILE_NAME__, __LINE__,
-            "function %s does not exists in module.", func_name.c_str());
+    Value *fcodegen() override{
+        auto lv = lhs->codegen();
+        Value *fv = nullptr;
+        if (info->index >= 0) {
+            fv = parser.builder.CreateStructGEP(info->type, lv, info->index);
+        }else{
+            fv = parser.module->getFunction(info->name);
         }
-        std::vector<Value *> v = {lhs->codegen()};
-        return parser.builder.CreateCall(callee, v, "calltmp");
+        std::vector<Value *> v = {lv};
+        return parser.builder.CreateCall((FunctionType*)info->type, fv, v, "calltmp");
     };
     virtual ~PrimaryPostfixOperatorExpr(){};
     PrimaryPostfixOperatorExpr(
         Parser &p,
         Type *t,
-        unique_ptr<PrimaryExpr> lvalue,
-        string fname
+        shared_ptr<PrimaryExpr> lvalue,
+        OperatorInfo *i
     )
-    : PrimaryExpr(p, lhs->location)
+    : PrimaryExpr(p, lvalue->location)
     {
-        lhs = move(lvalue);
+        lhs =  (lvalue);
         type = t;
-        func_name = fname;
+        info = i;
     }
 };
 } /* nodes */

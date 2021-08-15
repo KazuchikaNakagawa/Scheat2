@@ -2,33 +2,36 @@
 #define PoOExpr
 
 #include "Expr.h"
+#include "../Context.h"
 
 namespace nodes {
 class PostfixOperatorExpr : public Expr{
-    unique_ptr<Expr> lhs;
-    string func_name;
+    shared_ptr<Expr> lhs;
+    OperatorInfo *info;
 public:
-    Value *codegen() override{
-        auto callee = parser.module->getFunction(func_name);
-        if (!callee){
-            parser.scheato->logger()->FatalError(location, __FILE_NAME__, __LINE__,
-            "function %s does not exists in module.", func_name.c_str());
+    Value *fcodegen() override{
+        auto lv = lhs->codegen();
+        Value *fv = nullptr;
+        if (info->index >= 0) {
+            fv = parser.builder.CreateStructGEP(info->type, lv, info->index);
+        }else{
+            fv = parser.module->getFunction(info->name);
         }
-        std::vector<Value *> v = {lhs->codegen()};
-        return parser.builder.CreateCall(callee, v, "calltmp");
+        std::vector<Value *> v = {lv};
+        return parser.builder.CreateCall((FunctionType*)info->type, fv, v, "calltmp");
     };
     virtual ~PostfixOperatorExpr(){};
     PostfixOperatorExpr(
         Parser &p,
         Type *t,
-        unique_ptr<Expr> lvalue,
-        string fname
+        shared_ptr<Expr> lvalue,
+        OperatorInfo *i
     )
-    : Expr(p, lhs->location)
+    : Expr(p, lvalue->location)
     {
         type = t;
-        lhs = move(lvalue);
-        func_name = fname;
+        lhs =  (lvalue);
+        info = i;
     }
 };
 } /* nodes */

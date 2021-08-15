@@ -7,7 +7,7 @@ namespace nodes {
 class StringTerm : public Term {
     string value = "";
 public:
-    virtual Value *codegen() override;
+    virtual Value *fcodegen() override;
     virtual ~StringTerm(){};
     StringTerm(Parser &p, Token *tok)
     : Term(p,tok->location){

@@ -19,7 +19,8 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/LinkAllIR.h>
 #include "../ScheatStd.h"
-#include "ScheatObjects.h"
+#include "../ScheatObjects.h"
+#include "../Parser.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -28,9 +29,16 @@ using namespace scheat;
 using namespace llvm;
 using namespace scheatSTD;
 using namespace std;
+
+namespace scheat {
+class Parser;
+} /* scheat */
+
 namespace nodes{
 
 class Node {
+    bool generated = false;
+    Value *__val = nullptr;
 public:
     Scheat *scheato = nullptr;
     Parser &parser;
@@ -38,7 +46,16 @@ public:
     Type *type;
 
     Node(Parser &, SourceLocation);
-    virtual Value *codegen(){ return nullptr; };
+    Value *codegen(){
+        if (generated) {
+            return __val;
+        }else{
+            __val = fcodegen();
+            generated = true;
+            return __val;
+        }
+    }
+    virtual Value *fcodegen(){ return nullptr; };
     virtual ~Node(){};
     map<string, Type *>& getStructures(){
         return parser.structures;

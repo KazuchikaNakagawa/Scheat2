@@ -8,58 +8,87 @@
 #include <vector>
 
 using namespace std;
+using namespace llvm;
+
+namespace nodes {
+    class Statement;
+    class Term;
+    class Expr;
+} /* nodes */
+
+namespace scheat {
 enum AccessState {
-    s_public,
-    s_private,
-    s_fileprivate
+    s_public = 1,
+    s_private = -1,
+    s_fileprivate = -2
 };
 
-class VariableInfo {
-public:
-    llvm::Type *type;
-    AccessState accessState;
-    bool isConst;
-};
-
-class OperatorInfo {
-public:
-    llvm::Type *type;
-    string func_name;
-};
+class  Variable;
 
 class PropertyInfo {
 public:
     int index;
     llvm::Type *type;
     AccessState state;
+    bool isFunction;
 };
 
+class OperatorInfo : public PropertyInfo {
+public:
+    enum Precidence {
+        top,
+        primary,
+        secondary
+    } precidence;
+    enum Position{
+        prefix,
+        infix,
+        postfix
+    } position;
+    string name;
+};
+
+class Parser;
+
 class ClassInfo {
+    StructType *type;
 public:
     ClassInfo *baseInfo;
-    map<string, PropertyInfo> properties;
-    llvm::StructType *getType(llvm::LLVMContext &);
+    map<string, PropertyInfo*> properties;
+    map<string, OperatorInfo*> operators;
+    llvm::StructType *getType();
+    PropertyInfo *getVInfo(string key);
+    ClassInfo(string, LLVMContext &);
 };
 
 class Context {
 public:
-    virtual VariableInfo *getVInfo(string){
+    Parser &parser;
+    vector<shared_ptr<nodes::Statement>> statements;
+    // it shows also namespace
+    string prefix = "";
+    virtual  Variable *getVInfo(string){
         return nullptr;
     };
+    Context(Parser &p) : parser(p){};
 };
 
 class LocalContext : public Context {
 public:
     Context *base;
-    map<string, VariableInfo> locals;
-    VariableInfo *getVInfo(string) override;
+    map<string,  Variable*> locals;
+    Variable *getVInfo(string) override;
+    LocalContext(Parser &p) : Context(p){};
 };
 
 class GlobalContext : public Context {
 public:
-
-    map<string, VariableInfo> globals;
-    VariableInfo *getVInfo(string) override;
+    map<string, ClassInfo*> classes;
+    map<string,  Variable*> globals;
+     Variable *getVInfo(string) override;
+    ClassInfo *getCInfo(string);
+    GlobalContext(Parser &p) : Context(p){};
 };
-
+}
+using namespace scheat;
 #endif

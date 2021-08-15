@@ -8,7 +8,7 @@ namespace nodes {
 class BoolTerm : public Term {
     bool value;
 public:
-    virtual Value *codegen() override{
+    virtual Value *fcodegen() override{
         if (value) {
             return parser.builder.getTrue();
         }else{

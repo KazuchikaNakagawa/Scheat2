@@ -72,6 +72,8 @@ public:
     void clearTokens() ;
 
     Token *getTokens();
+
+    friend class Parser;
 };
 
 }

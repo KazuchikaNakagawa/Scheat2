@@ -1,28 +1,47 @@
 #include "Context.h"
 
-VariableInfo* LocalContext::getVInfo(string key){
+ Variable* LocalContext::getVInfo(string key){
     auto p = locals.find(key);
     if (p == locals.end()) {
         if (base == nullptr) return nullptr;
         return base->getVInfo(key);
     }
-    return &p->second;
+    return p->second;
 }
 
-VariableInfo *GlobalContext::getVInfo(string key){
+ Variable *GlobalContext::getVInfo(string key){
     auto p = globals.find(key);
     if (p == globals.end()) {
         return nullptr;
     }
-    return &p->second;
+    return p->second;
 }
 
-llvm::StructType *ClassInfo::getType(llvm::LLVMContext &c){
+ClassInfo *GlobalContext::getCInfo(string key){
+    auto p = classes.find(key);
+    if (p == classes.end()) {
+        return nullptr;
+    }
+    return p->second;
+}
+
+llvm::StructType *ClassInfo::getType(){
     vector<llvm::Type *> arr;
     for (auto pair : properties){
-        arr.push_back(pair.second.type);
+        arr.push_back(pair.second->type);
     }
-    auto type = llvm::StructType::create(c);
     type->setBody(arr);
     return type;
+}
+
+PropertyInfo *ClassInfo::getVInfo(string key){
+    auto p = properties.find(key);
+    if (p == properties.end()) {
+        return nullptr;
+    }
+    return p->second;
+}
+
+ClassInfo::ClassInfo(string name, LLVMContext &c){
+    type = StructType::create(c, name);
 }

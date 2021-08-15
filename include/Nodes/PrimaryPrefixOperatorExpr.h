@@ -2,33 +2,36 @@
 #define PPOExpr
 
 #include "PrimaryExpr.h"
+#include "../Context.h"
 namespace nodes {
 
 class PrimaryPrefixOperatorExpr : public PrimaryExpr {
-    std::string func_name;
-    unique_ptr<PrimaryExpr> rhs;
+    OperatorInfo *info;
+    shared_ptr<PrimaryExpr> rhs;
 public:
-    Value *codegen() override{
-        auto callee = parser.module->getFunction(func_name);
-        if (!callee){
-            parser.scheato->logger()->FatalError(location, __FILE_NAME__, __LINE__,
-            "function %s does not exists in module.", func_name.c_str());
+    Value *fcodegen() override{
+        auto rv = rhs->codegen();
+        Value *fv = nullptr;
+        if (info->index >= 0) {
+            fv = parser.builder.CreateStructGEP(info->type, rv, info->index);
+        }else{
+            fv = parser.module->getFunction(info->name);
         }
-        std::vector<Value *> v = {rhs->codegen()};
-        return parser.builder.CreateCall(callee, v, "calltmp");
+        std::vector<Value *> v = {rv};
+        return parser.builder.CreateCall((FunctionType*)info->type, fv, v, "calltmp");
     };
     virtual ~PrimaryPrefixOperatorExpr(){};
     PrimaryPrefixOperatorExpr(
         Parser &p,
         Type *t,
-        string n,
-        unique_ptr<PrimaryExpr> expr
+        OperatorInfo *i,
+        shared_ptr<PrimaryExpr> expr
     )
     : PrimaryExpr(p, expr->location)
     {
         type = t;
-        rhs = move(expr);
-        func_name = n;
+        rhs =  (expr);
+        info = i;
     };
 };
 

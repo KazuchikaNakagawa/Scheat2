@@ -5,17 +5,17 @@
 namespace nodes {
 
 class ExprStatement : public Statement {
-    unique_ptr<Expr> ptr;
+    shared_ptr<Expr> ptr;
 public:
-    virtual Value *codegen(){
+    virtual Value *fcodegen(){
         ptr->codegen();
         return nullptr;
     }
     virtual ~ExprStatement(){};
-    ExprStatement(Parser &p, unique_ptr<Expr> e)
+    ExprStatement(Parser &p, shared_ptr<Expr> e)
     : Statement(p,e->location)
     {
-        ptr = move(e);
+        ptr =  (e);
     };
 };
 

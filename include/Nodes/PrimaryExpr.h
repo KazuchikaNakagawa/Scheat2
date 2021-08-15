@@ -5,7 +5,7 @@
 namespace nodes {
 class PrimaryExpr : public Expr {
 public:
-    virtual Value *codegen() override{
+    virtual Value *fcodegen() override{
         return nullptr;
     }
     virtual ~PrimaryExpr(){};

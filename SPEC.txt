@@ -1,0 +1,2 @@
+function type
+<Type> from(argType1, argType2...)

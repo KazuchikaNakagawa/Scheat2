@@ -2,17 +2,18 @@
 #define IOExpr
 
 #include "Expr.h"
+#include "../Context.h"
 
 namespace nodes {
 
 class InfixOperatorExpr : public Expr {
-    unique_ptr<Expr> lhs;
-    string func_name;
-    unique_ptr<Expr> rhs;
+    shared_ptr<Expr> lhs;
+    OperatorInfo *info;
+    shared_ptr<Expr> rhs;
 public:
-    Value *codegen() override;
+    Value *fcodegen() override;
     virtual ~InfixOperatorExpr() {};
-    InfixOperatorExpr(Parser &, Type *, unique_ptr<Expr>, string, unique_ptr<Expr>);
+    InfixOperatorExpr(Parser &, Type *, shared_ptr<Expr>, OperatorInfo *, shared_ptr<Expr>);
 };
 
 }

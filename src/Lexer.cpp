@@ -340,7 +340,7 @@ void Lexer::genTok(){
         return;
     }
 
-    if (buf == "return") {
+    if (buf == "return"||buf == "returns") {
         tok->kind = TokenKind::tok_return;
         tadd;
         clear();
@@ -440,6 +440,13 @@ void Lexer::genTok(){
 
     if (buf == "for") {
         tok->kind = TokenKind::tok_for;
+        tadd;
+        clear();
+        return;
+    }
+
+    if (buf == "require") {
+        tok->kind = TokenKind::tok_require;
         tadd;
         clear();
         return;
@@ -612,6 +619,8 @@ void Token::out(ScheatLogManager *manager){
         case TokenKind::tok_its:
             printf("its token\n");
             break;
+        case TokenKind::tok_require:
+            printf("require token\n");
         case TokenKind::tok_local:
             printf("local token\n");
             break;
@@ -633,6 +642,151 @@ void Token::out(ScheatLogManager *manager){
     }
 
     //printf("unknown token\n");
+
+}
+
+string Token::to_string(ScheatLogManager *manager) const{
+    //return("line: %d, column: %d    ", location.line, location.column);
+
+    switch (kind) {
+        case TokenKind::tok_EOF:
+            return("EOF token");
+            break;
+        case TokenKind::val_identifier:
+            return("identifier token " + value.strValue);
+            break;
+        case TokenKind::val_num:
+            return("integer token " + std::to_string(value.intValue));
+            break;
+        case TokenKind::val_str:
+            return("string token " + value.strValue);
+            break;
+        case TokenKind::val_double:
+            return("float-point token " + std::to_string(value.doubleValue));
+            break;
+        case TokenKind::val_bool:
+            return(value.boolValue ? ("boolean token -> true"):("boolean token ->false"));
+            break;
+        case TokenKind::val_operator:
+            return("operator token -> " + value.strValue);
+            //return("encoded ->%s", this->encodeOperator(manager).c_str());
+            break;
+        case TokenKind::val_null:
+            return("null token");
+            break;
+        case TokenKind::tok_this:
+            return("this token");
+            break;
+        case TokenKind::tok_the:
+            return("the token");
+            break;
+        case TokenKind::tok_is:
+            return("is token");
+            break;
+        case TokenKind::tok_of:
+            return("of token");
+            break;
+        case TokenKind::tok_period:
+            return(". token");
+            break;
+        case TokenKind::tok_comma:
+            return(", token");
+            break;
+        case TokenKind::tok_range:
+            return("... token");
+            break;
+        case TokenKind::tok_if:
+            return("if token");
+            break;
+        case TokenKind::tok_for:
+            return("for token");
+            break;
+        case TokenKind::tok_require:
+            return("require token");
+        case TokenKind::tok_from:
+            return("from token");
+            break;
+        case TokenKind::tok_times:
+            return("times token");
+            break;
+        case TokenKind::tok_do:
+            return("do token");
+            break;
+        case TokenKind::tok_done:
+            return("done token");
+            break;
+        case TokenKind::tok_or:
+            return("or token");
+            break;
+        case TokenKind::tok_paren_l:
+            return("( token");
+            break;
+        case TokenKind::tok_paren_r:
+            return(") token");
+            break;
+        case TokenKind::tok_brace_l:
+            return("{ token");
+            break;
+        case TokenKind::tok_brace_r:
+            return("} token");
+            break;
+        case TokenKind::tok_access:
+            return("access token(obsoluted.)");
+            break;
+        case TokenKind::tok_external:
+            return("external token");
+            break;
+        case TokenKind::tok_import:
+            return("import token");
+            break;
+        case TokenKind::tok_export:
+            return("export token");
+            break;
+        case TokenKind::tok_to:
+            return("to token");
+            break;
+        case TokenKind::tok_with:
+            return("with token");
+            break;
+        case TokenKind::tok_while:
+            return("while token");
+            break;
+        case TokenKind::tok_loaded:
+            return("loaded token");
+            break;
+        case TokenKind::tok_return:
+            return("return token");
+            break;
+        case TokenKind::tok_break:
+            return("break token");
+            break;
+        case TokenKind::tok_class:
+            return("class token");
+            break;
+        case TokenKind::tok_its:
+            return("its token");
+            break;
+        case TokenKind::tok_local:
+            return("local token");
+            break;
+        case TokenKind::tok_global:
+            return("global token");
+            break;
+        case TokenKind::embbed_func_print:
+            return("print token");
+            break;
+        case TokenKind::embbed_func_import:
+            return("import token");
+            break;
+        case TokenKind::embbed_func_free:
+            return("free token");
+            break;
+        case TokenKind::embbed_func_assemble:
+            return("assemble token");
+            break;
+    }
+
+    //return("unknown token");
 
 }
 

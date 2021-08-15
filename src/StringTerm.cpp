@@ -1,7 +1,7 @@
 #include "Nodes/StringTerm.h"
 using namespace nodes;
 
-Value *StringTerm::codegen(){
+Value *StringTerm::fcodegen(){
     auto p = parser.strings.find(value);
     if (p == parser.strings.end()){
         auto gv = parser.builder.CreateGlobalString(value);

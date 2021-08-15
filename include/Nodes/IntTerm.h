@@ -6,7 +6,7 @@ namespace nodes{
 class IntTerm : public Term {
     int value;
 public:
-    virtual Value *codegen() override{
+    virtual Value *fcodegen() override{
         return parser.builder.getInt32(value);
     }
     virtual ~IntTerm(){};

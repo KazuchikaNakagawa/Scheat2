@@ -6,7 +6,7 @@ namespace nodes {
 
 class Statement : public Node{
 public:
-    virtual Value *codegen() override{
+    virtual Value *fcodegen() override{
         return nullptr;
     };
     virtual ~Statement(){

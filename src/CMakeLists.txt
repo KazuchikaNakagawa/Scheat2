@@ -1,19 +1,18 @@
+AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR} source)
+AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/Parser parser_source)
+AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/FoundationGenerator gen_source)
+AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/Context con_source)
+
 add_library(
     scheatAPI
     STATIC
-    ScheatStd.cpp
-    Lexer.cpp
-    Utilities.cpp
-    Node.cpp
-    Parser.cpp
-    StringTerm.cpp
-    Generator.cpp
-    InfixOperatorExpr.cpp
-    PrimaryInfixOperatorExpr.cpp
-    InfixOperatorTerm.cpp
-    Context.cpp
-    scheat.cpp
+    ${source}
+    ${parser_source}
+    ${gen_source}
+    ${con_source}
 )
+
+SET(CMAKE_CXX_FLAGS "-Wall -g")
 
 find_path(LLVM_DIR LLVM-Config.cmake /usr/local/Cellar/llvm/11.1.0/lib/cmake/llvm)
 

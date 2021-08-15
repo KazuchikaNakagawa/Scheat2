@@ -8,7 +8,7 @@ namespace nodes {
 class FloatTerm : public Term {
     double value;
 public:
-    virtual Value *codegen() override{
+    virtual Value *fcodegen() override{
         return ConstantFP::get(type, value);
     }
     virtual ~FloatTerm(){};

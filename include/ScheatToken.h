@@ -24,17 +24,17 @@ using namespace scheatSTD;
 
 enum class TokenKind : int {
 
-    tok_EOF,
+    tok_EOF = -10,
 
-    val_identifier,
-    val_num,
-    val_str,
-    val_double,
-    val_bool,
-    val_operator,
-    val_null,
+    val_identifier = -9,
+    val_num = -8,
+    val_str = -7,
+    val_double = -6,
+    val_bool = -5,
+    val_operator = -4,
+    val_null = -3,
 
-    tok_this,
+    tok_this = 0,
     tok_the,
     tok_is,
     tok_of,
@@ -54,6 +54,7 @@ enum class TokenKind : int {
     tok_brace_r,
     tok_access,
     tok_external,
+    tok_require,
     tok_import,
     tok_export,
     tok_to,
@@ -132,6 +133,7 @@ struct Token {
     void enumerate(ScheatLogManager *);
     std::string encodeOperator(ScheatLogManager *);
     void out(ScheatLogManager *);
+    string to_string(ScheatLogManager *) const;
     Token(){
         next = nullptr;
         prev = nullptr;

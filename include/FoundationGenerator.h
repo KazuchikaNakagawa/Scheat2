@@ -1,4 +1,6 @@
-#include "Generator.h"
+#ifndef FOUNDATIONGENERATOR
+#define FOUNDATIONGENERATOR
+
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/Linker/Linker.h>
@@ -16,16 +18,17 @@
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/LinkAllIR.h>
-#include "ScheatStd.h"
-#include "ScheatObjects.h"
-#include "Parser.h"
+#include "../ScheatStd.h"
+#include "../ScheatObjects.h"
+#include "../Parser.h"
 #include <map>
 #include <string>
 #include <vector>
 
-using namespace scheat;
+namespace FoundationGenerator {
+
 using namespace llvm;
-unique_ptr<Module> Generator::generateFoundationModule(){
-    
-    return nullptr;
-}
+
+} /* Generator */
+
+#endif

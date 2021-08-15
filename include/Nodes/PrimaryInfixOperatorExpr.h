@@ -2,21 +2,22 @@
 #define PIOExpr
 
 #include "PrimaryExpr.h"
+#include "../Context.h"
 
 namespace nodes {
 class PrimaryInfixOperatorExpr : public PrimaryExpr {
-    unique_ptr<PrimaryExpr> lhs;
-    string func_name;
-    unique_ptr<PrimaryExpr> rhs;
+    shared_ptr<PrimaryExpr> lhs;
+    OperatorInfo *info;
+    shared_ptr<PrimaryExpr> rhs;
 public:
-    Value *codegen() override;
+    Value *fcodegen() override;
     virtual ~PrimaryInfixOperatorExpr(){};
     PrimaryInfixOperatorExpr(
         Parser &,
         Type *,
-        unique_ptr<PrimaryExpr>,
-        string,
-        unique_ptr<PrimaryExpr>
+        shared_ptr<PrimaryExpr>,
+        OperatorInfo *i,
+        shared_ptr<PrimaryExpr>
     );
 };
 }

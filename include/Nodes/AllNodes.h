@@ -24,4 +24,7 @@
 #include "Statement.h"
 #include "AccessTerm.h"
 #include "ExprStatement.h"
+#include "NewIdentifierExpr.h"
+#include "AssignStatement.h"
+#include "GlobalIdentifierExpr.h"
 #endif

@@ -2,21 +2,22 @@
 #define IOTerm
 
 #include "Term.h"
+#include "../Context.h"
 
 namespace nodes {
 class InfixOperatorTerm : public Term {
-    unique_ptr<Term> lhs;
-    string func_name;
-    unique_ptr<Term> rhs;
+    shared_ptr<Term> lhs;
+    OperatorInfo *info;
+    shared_ptr<Term> rhs;
 public:
-    Value *codegen() override;
+    Value *fcodegen() override;
     virtual ~InfixOperatorTerm(){};
     InfixOperatorTerm(
         Parser &,
         Type *,
-        unique_ptr<Term>,
-        string,
-        unique_ptr<Term>
+        shared_ptr<Term>,
+        OperatorInfo *,
+        shared_ptr<Term>
     );
 };
 }

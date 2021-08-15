@@ -1,7 +1,10 @@
 #ifndef GENERATOR
 #define GENERATOR
 
-#include "Parser.h"
+#include <iostream>
+namespace llvm {
+    class Module;
+} /* llvm */
 
 namespace scheat{
 
